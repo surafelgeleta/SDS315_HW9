@@ -1,0 +1,162 @@
+---
+title: "HW9"
+author:
+  - Surafel Geleta
+  - ssg2775
+  - https://github.com/surafelgeleta/SDS315_HW9
+output: html_document
+---
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+# Importing packages
+library(tidyverse)
+library(mosaic)
+library(modelsummary)
+library(kableExtra)
+# Importing data
+groceries <- read.csv("C:\\Users\\gelet\\OneDrive\\Documents\\SDS315\\HW9\\groceries.csv")
+
+redlining <- read.csv("C:\\Users\\gelet\\OneDrive\\Documents\\SDS315\\HW9\\redlining.csv")
+
+solder <- read.csv("C:\\Users\\gelet\\OneDrive\\Documents\\SDS315\\HW9\\solder.csv")
+```
+
+# Problem 1
+
+## Part A
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+# Factored boxplot showing variations in solder skips by size of opening
+
+ggplot(solder, aes(x = factor(Opening), y = skips)) +
+  geom_boxplot() +
+  labs(x = "Solder Gun Opening Size",
+       y = "Number of Solder Skips on Circuit Board",
+       title = "Solder Manufacturing Flaws By Size of Solder Gun Opening")
+
+```
+Above is a factored boxplot showing the relationship between the number of solder skips on a circuit board and the solder gun's opening size. Circuit boards tend to have more solder skips the smaller the solder gun's opening size is. Moreover, the distribution of solder skips for each opening size appears to be right skewed.
+
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+# Factored boxplot showing variations in solder skips by size of opening
+
+ggplot(solder, aes(x = factor(Solder), y = skips)) +
+  geom_boxplot() +
+  labs(x = "Soldering Alloy Thickness",
+       y = "Number of Solder Skips on Circuit Board",
+       title = "Solder Manufacturing Flaws By Soldering Alloy Thickness")
+```
+
+The boxplot above shows the relationship between solder skips on circuit boards and thickness of the soldering alloy. Thin alloys tend to have more manufacturing flaws than thick alloys. As with the previous graph, the distribution of solder skips is right skewed for both groups.
+
+## Part B
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+# Large Sample 95% Confidence Interval for Regression with outcome variable skips, predictors Opening and Solder, and Interaction Term Between Opening and Solder
+confint(lm(skips ~ Opening + Solder + Opening:Solder, data = solder))
+                     
+modelsummary(lm(skips ~ Opening + Solder + Opening:Solder, data = solder), 
+             fmt = 2,
+             statistic = 'conf.int',
+             conf_level = .95)
+```
+
+
+## Part C
+
+It can be stated with 95% confidence that the true baseline number of solder skips on AT&T's circuit boards when the soldering gun opening is large and the soldering alloy is thick lies between -0.63 and 1.41.
+
+It can be stated with 95% confidence that the true main effect of the soldering gun's opening being medium-sized lies between 0.96 and 3.85 additional solder skips.
+
+It can be stated with 95% confidence that the true main effect of the soldering gun's opening being small-sized lies between 3.68 and 6.57 additional solder skips.
+
+It can be stated with 95% confidence that the true main effect of the soldering alloy being thing lies between 0.84 and 3.72 additional solder skips.
+
+It can be stated with 95% confidence that the true interaction effect of the soldering gun opening being medium-sized and the soldering alloy being thin lies between -2.78 and 1.30 additional solder skips.
+
+It can be stated with 95% confidence that the true interaction effect of the soldering gun opening being small-sized and the soldering alloy being thin lies between 7.61 and 11.70 additional solder skips.
+
+## Part D
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+coef(lm(skips ~ Opening + Solder + Opening:Solder, data = solder))
+# If Opening = Large, Alloy = Thick
+large_thick = 0.39 + 2.41*0 + 5.13*0 + 2.28*0 - 0.74*0*0 + 9.65*0*0
+# If Opening = Large, Alloy = Thin
+large_thin = 0.39 + 2.41*0 + 5.13*0 + 2.28*1 - 0.74*0*1 + 9.65*0*1
+# If Opening = Medium, Alloy = Thick
+medium_thick = 0.39 + 2.41*1 + 5.13*0 + 2.28*0 - 0.74*1*0 + 9.65*0*0
+# If Opening = Medium, Alloy = Thin
+medium_thin = 0.39 + 2.41*1 + 5.13*0 + 2.28*1 - 0.74*1*1 + 9.65*0*1
+# If Opening = Small, Alloy = Thick
+small_thick = 0.39 + 2.41*0 + 5.13*1 + 2.28*0 - 0.74*0*0 + 9.65*1*0
+# If Opening = Small, Alloy = Thin
+small_thin = 0.39 + 2.41*0 + 5.13*1 + 2.28*1 - 0.74*0*0 + 9.65*1*1
+
+kable(data.frame(Small = c(small_thin, small_thick),
+           Medium = c(medium_thin, medium_thick),
+           Large = c(large_thin, large_thick),
+           row.names = c("Thin", "Thick")), col.names = c("Small", "Medium", "Large"),
+      row.names = TRUE, caption = "Estimated Solder Skips by Solder Gun Opening Size and Alloy Thickness") %>% 
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+The table above shows predicted solder skips on AT&T circuit boards according to the soldering gun opening size and whether the soldering alloy was thick or thin. I would most likely recommend a large solder gun opening size and a thick alloy thickness because that combination has the lowest predicted solder skips on circuit boards.
+
+# Problem 2
+
+## Part A
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+groceries %>% 
+  group_by(Store) %>% 
+  summarize(mean_price = mean(Price)) %>%
+  # Ordering stores by price
+  mutate(Store = fct_reorder(Store, mean_price)) %>% 
+  ggplot(aes(x = Store, y = mean_price)) +
+  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+  coord_flip() +
+  labs(x = "Store",
+       y = "Mean Price of Products",
+       title = "Mean Product Price In Select Texas Grocery Stores")
+```
+
+The barplot above shows the distribution of mean prices of products sold in a particular store across a number of Texas stores. Whole Foods stores, followed closely by Wheatsville Food Co-Op, have the highest mean price for the products they sell, while Fiesta stores have the lowest mean price for the products they sell.
+
+## Part B
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+groceries %>% 
+  group_by(Product) %>% 
+  summarize(number_of_stores = n()) %>% 
+  mutate(Product = fct_reorder(Product, number_of_stores)) %>% 
+  ggplot(aes(x = Product, y = number_of_stores)) +
+  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+  coord_flip() +
+  labs(x = "Product",
+       y = "Number of Stores Selling Product",
+       title = "Number of Locations Selling Select Products Across Texas Stores")
+```
+
+The barplot above displays the number of stores selling a select product across the dataset of Texas stores. Horizon 2% Milk Cartons and egg cartons are the most frequently sold, with 16 stores selling the products. On the other hand, Lucky Charms, Frosted Flakes, El Milagros Tortilla Chips, and Cinnamon Toast Crunch are the least sold products, with only 4 stores selling the goods.
+
+## Part C
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+confint(lm(Price ~ Product + Type, data = groceries))
+```
+Compared with ordinary grocery stores (like Albertsons, HEB, or Krogers), convenience stores charge somewhere between 0.41 and 0.92 dollars more for the same product.
+
+## Part D
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+coef(lm(Price ~ Product + Store, data = groceries))
+```
+Walmart and Kroger Fresh Fare seem to charge the lowest prices when comparing the same product. Whole Foods and Wheatsville Food Co-Op seem to charge the highest prices when comparing the same product.
+
+## Part E
+
+```{r}
+
+```
+
