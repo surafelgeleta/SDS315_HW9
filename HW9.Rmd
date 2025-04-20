@@ -55,19 +55,20 @@ The boxplot above shows the relationship between solder skips on circuit boards 
 
 ## Part B
 
-```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+```{r message=FALSE, warning=FALSE, echo=FALSE}
 # Large Sample 95% Confidence Interval for Regression with outcome variable skips, predictors Opening and Solder, and Interaction Term Between Opening and Solder=
 conf <- rownames_to_column(data.frame(confint(lm(skips ~ Opening + Solder + Opening:Solder, data = solder)))) %>% 
-  rename("term" = "rowname")
+  rename("term" = "rowname") %>% 
+  mutate(term = recode(term, "(Intercept)" = "Intercept"))
 
 estimates <- tidy(lm(skips ~ Opening + Solder + Opening:Solder, data = solder)) %>% 
-  select(1:2) 
+  select(1:2) %>% 
+  mutate(term = recode(term, "(Intercept)" = "Intercept"))
 
 final <- right_join(estimates, conf, by = "term")
   
-kable(final, row.names = FALSE, col.names = c("Term", "Estimate", "Lower Bound 95% CI", "Upper Bound 95% CI"), digits = 2, caption = "Interaction Regression Estimates and 95% Confidence Intervals") %>% 
+kable(final, row.names = FALSE, col.names = c("Term", "Estimate", "Lower Bound", "Upper Bound"), digits = 2, caption = "Interaction Regression Estimates and Confidence Intervals") %>% 
   kable_classic(full_width = F, html_font = "Cambria")
-
 ```
 
 
