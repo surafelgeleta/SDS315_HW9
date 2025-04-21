@@ -6,6 +6,7 @@
 - `kableExtra`
 - `effectsize`
 - `moderndive`
+- `modelsummary`
 
 # Required data
 - groceries.csv
