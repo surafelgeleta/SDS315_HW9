@@ -13,8 +13,8 @@ output:
 # Importing packages
 library(tidyverse)
 library(mosaic)
-library(modelsummary)
 library(kableExtra)
+library(modelsummary)
 library(effectsize)
 library(moderndive)
 # Importing data
@@ -147,7 +147,7 @@ groceries %>%
   coord_flip() +
   labs(x = "Product",
        y = "Number of Stores Selling Product",
-       title = "Number of Locations Selling Select Products Across Texas Stores")
+       title = "Number of Locations Selling Select Products in TX")
 ```
 
 The barplot above displays the number of stores selling a select product across the dataset of Texas stores. Horizon 2% Milk Cartons and egg cartons are the most frequently sold, with 16 stores selling the products. On the other hand, Lucky Charms, Frosted Flakes, El Milagros Tortilla Chips, and Cinnamon Toast Crunch are the least sold products, with only 4 stores selling the goods.
