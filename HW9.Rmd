@@ -31,19 +31,16 @@ solder <- read.csv("C:\\Users\\gelet\\OneDrive\\Documents\\SDS315\\HW9\\solder.c
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
 # Factored boxplot showing variations in solder skips by size of opening
-
 ggplot(solder, aes(x = factor(Opening), y = skips)) +
   geom_boxplot() +
   labs(x = "Solder Gun Opening Size",
        y = "Number of Solder Skips on Circuit Board",
        title = "Solder Manufacturing Flaws By Size of Solder Gun Opening")
-
 ```
 Above is a factored boxplot showing the relationship between the number of solder skips on a circuit board and the solder gun's opening size. Circuit boards tend to have more solder skips the smaller the solder gun's opening size is. Moreover, the distribution of solder skips for each opening size appears to be right skewed.
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
 # Factored boxplot showing variations in solder skips by size of opening
-
 ggplot(solder, aes(x = factor(Solder), y = skips)) +
   geom_boxplot() +
   labs(x = "Soldering Alloy Thickness",
@@ -56,17 +53,20 @@ The boxplot above shows the relationship between solder skips on circuit boards 
 ## Part B
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
-# Large Sample 95% Confidence Interval for Regression with outcome variable skips, predictors Opening and Solder, and Interaction Term Between Opening and Solder=
+# Creating a new dataframe made up of the lower and upper intervals of a 95% confidence interval on the linear model regressing skips on opening, solder, and a interaction term between opening and solder
 conf <- rownames_to_column(data.frame(confint(lm(skips ~ Opening + Solder + Opening:Solder, data = solder)))) %>% 
   rename("term" = "rowname") %>% 
   mutate(term = recode(term, "(Intercept)" = "Intercept"))
 
+# Creating a new dataframe made up of the estimated coefficients of the linear model regressing skips on opening, solder, and a interaction term between opening and solder
 estimates <- tidy(lm(skips ~ Opening + Solder + Opening:Solder, data = solder)) %>% 
   select(1:2) %>% 
   mutate(term = recode(term, "(Intercept)" = "Intercept"))
 
+# Joining the two dataframes
 final <- right_join(estimates, conf, by = "term")
-  
+
+# Kable table displaying linear model coefficient estimates and 95% confidence intervals
 kable(final, row.names = FALSE, col.names = c("Term", "Estimate", "Lower Bound", "Upper Bound"), digits = 2, caption = "Interaction Regression Estimates and Confidence Intervals") %>% 
   kable_classic(full_width = F, html_font = "Cambria")
 ```
@@ -89,7 +89,7 @@ It can be stated with 95% confidence that the true interaction effect of the sol
 ## Part D
 
 ```{r message=FALSE, warning=FALSE, echo=FALSE}
-coef(lm(skips ~ Opening + Solder + Opening:Solder, data = solder))
+#coef(lm(skips ~ Opening + Solder + Opening:Solder, data = solder))
 # If Opening = Large, Alloy = Thick
 large_thick = 0.39 + 2.41*0 + 5.13*0 + 2.28*0 - 0.74*0*0 + 9.65*0*0
 # If Opening = Large, Alloy = Thin
@@ -103,6 +103,7 @@ small_thick = 0.39 + 2.41*0 + 5.13*1 + 2.28*0 - 0.74*0*0 + 9.65*1*0
 # If Opening = Small, Alloy = Thin
 small_thin = 0.39 + 2.41*0 + 5.13*1 + 2.28*1 - 0.74*0*0 + 9.65*1*1
 
+# Kable table showing different estimates of regression model
 kable(data.frame(Small = c(small_thin, small_thick),
            Medium = c(medium_thin, medium_thick),
            Large = c(large_thin, large_thick),
@@ -117,7 +118,7 @@ The table above shows predicted solder skips on AT&T circuit boards according to
 
 ## Part A
 
-```{r message=FALSE, warning=FALSE, echo=FALSE}
+```{r message=FALSE, warning=FALSE, echo=FALSE, results = 'hide'}
 groceries %>% 
   group_by(Store) %>% 
   summarize(mean_price = mean(Price)) %>%
@@ -135,10 +136,11 @@ The barplot above shows the distribution of mean prices of products sold in a pa
 
 ## Part B
 
-```{r message=FALSE, warning=FALSE, echo=FALSE}
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
 groceries %>% 
   group_by(Product) %>% 
   summarize(number_of_stores = n()) %>% 
+  # Reordering products by the number of stores selling product
   mutate(Product = fct_reorder(Product, number_of_stores)) %>% 
   ggplot(aes(x = Product, y = number_of_stores)) +
   geom_bar(stat = "identity", fill = "skyblue", color = "black") +
@@ -152,33 +154,36 @@ The barplot above displays the number of stores selling a select product across 
 
 ## Part C
 
-```{r message=FALSE, warning=FALSE, echo=FALSE}
+```{r message=FALSE, warning=FALSE, echo=FALSE, results = 'hide'}
 confint(lm(Price ~ Product + Type, data = groceries))
 ```
 Compared with ordinary grocery stores (like Albertsons, HEB, or Krogers), convenience stores charge somewhere between 0.41 and 0.92 dollars more for the same product.
 
 ## Part D
 
-```{r message=FALSE, warning=FALSE, echo=FALSE}
+```{r message=FALSE, warning=FALSE, echo=FALSE, results = 'hide'}
 coef(lm(Price ~ Product + Store, data = groceries))
 ```
 Walmart and Kroger Fresh Fare seem to charge the lowest prices when comparing the same product. Whole Foods and Wheatsville Food Co-Op seem to charge the highest prices when comparing the same product.
 
 ## Part E
 
-```{r message=FALSE, warning=FALSE, echo=FALSE}
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
 confint(lm(Price ~ Product + Store, data = groceries))
 ```
 The coefficient on the storeCentralMarket variable in the regression model is -0.57 while the coefficient on the StoreH-E-B variable is -0.65. The 95% confidence intervals for the two coefficients are [-0.92, -0.23] for storeCentralMarket and [-0.95, -0.35] for storeH-E-B.
 
 ## Part F
 
-```{r message=FALSE, warning=FALSE, echo=FALSE}
+```{r message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
+# Creating a new object of groceries with new column income10k
 groceries_income10k <- groceries %>% 
   mutate(Income10K = Income/10000)
 
+# Linear model regressing price on product and income10k
 lm(Price ~ Product + Income10K, data = groceries_income10k)
 
+# Standardizing regression coefficients to identify standard deviation changes
 standardize_parameters(lm(Price ~ Product + Income, data = groceries))
 ```
 
@@ -200,8 +205,8 @@ False. This statement would mean that the relationship between minority percenta
 
 ## D: Even without controlling for any other variables, income “explains away” all the association between minority percentage and FAIR policy uptake.
 
-False. A confidence interval on the linear model predicting FAIR policies, with minority percentage and income as predictor variables, still shows with 95% confidence that while adjusting for income, a percentage point increase in minority population of ZIP code is associated with a change in FAIR policies per 100 housing units between 0.004 and 0.015. Comparing this to the confidence interval on the linear model with only income and FAIR policies, this confidence interval may suggest a weaker relationship between minority percentage and FAIR policies when adjusting for income, but we cannot say that income "explains away" the association because there is still evidence of it's presence.
+False. In Table 5, a confidence interval on the linear model predicting FAIR policies, with minority percentage and income as predictor variables, still shows with 95% confidence that while adjusting for income, a percentage point increase in minority population of ZIP code is associated with a change in FAIR policies per 100 housing units between 0.004 and 0.015. Comparing this to the confidence interval on the linear model with only income and FAIR policies, this confidence interval may suggest a weaker relationship between minority percentage and FAIR policies when adjusting for income, but we cannot say that income "explains away" the association because there is still evidence to reject the null hypothesis that there is no association between minority percentage and FAIR policies.
 
 ## E: Minority percentage and number of FAIR policies are still associated at the ZIP code level, even after controlling for income, fire risk, and housing age.
 
-True. A confidence interval on a linear model adjusting for income, fire risk, and housing age (i.e. adding these variables to the model) found with 95% confidence that the true change in FAIR policies per 100 housing units for every one percentage point increase in the minority population of a ZIP code lies between 0.003 and 0.014. Compared to the first linear model regressing FAIR policies on minority percentage that estimated with 95% confidence that a minority percentage-point increase on FAIR policies lied in [0.009, 0.018], the adjusted coefficient on minority is likely smaller, but still nonzero suggesting that there is still a relationship between minority percentage and FAIR policies per 100 housing units after controlling for income, fire risk, and housing age.
+True. In Table 6, a confidence interval on a linear model adjusting for income, fire risk, and housing age (i.e. adding these variables to the model) found with 95% confidence that the true change in FAIR policies per 100 housing units for every one percentage point increase in the minority population of a ZIP code lies between 0.003 and 0.014. Compared to the first linear model regressing FAIR policies on minority percentage that estimated with 95% confidence that a minority percentage-point increase on FAIR policies lied in [0.009, 0.018], the adjusted coefficient on minority is likely smaller, but still nonzero suggesting that there is still a relationship between minority percentage and FAIR policies per 100 housing units after controlling for income, fire risk, and housing age.
